@@ -196,6 +196,19 @@ void RendererClientBase::BindProcess(v8::Isolate* isolate,
   process->SetReadOnly("contextId", context_id);
 }
 
+bool RendererClientBase::ShouldLoadPreload(
+    v8::Handle<v8::Context> context,
+    content::RenderFrame* render_frame) const {
+  auto prefs = render_frame->GetBlinkPreferences();
+  bool is_main_frame = render_frame->IsMainFrame();
+  bool is_devtools =
+      IsDevTools(render_frame) || IsDevToolsExtension(render_frame);
+  bool allow_node_in_sub_frames = prefs.node_integration_in_sub_frames;
+
+  return (is_main_frame || is_devtools || allow_node_in_sub_frames) &&
+         !IsWebViewFrame(context, render_frame);
+}
+
 void RendererClientBase::RenderThreadStarted() {
   auto* command_line = base::CommandLine::ForCurrentProcess();
 
